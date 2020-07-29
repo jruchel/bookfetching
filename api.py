@@ -23,22 +23,20 @@ class Api:
         matcher = pattern.match(body)
         return matcher.group(1)
 
-    def __createAuthor(self, name, last_name, title, units):
-        author = '{{"firstName":"{}", "lastName":"{}","bibliography":[{{"title":"{}", "inStock":{}}}] }}'.format(name,
-                                                                                                                 last_name,
-                                                                                                                 title,
-                                                                                                                 units)
+    def __createAuthor(self, name, title, units):
+        author = '{{"name":"{}","bibliography":[{{"title":"{}", "inStock":{}}}] }}'.format(name, title, units)
         return author
 
-    def addAuthor(self, name, last_name, title, units):
+    def addAuthor(self, name, title, units):
+        print("{}: {}, {}".format(name, title, units))
         if self.__authorList is None or len(self.__authorList) is 0:
             self.__authorList = "["
-            self.__authorList += self.__createAuthor(name, last_name, title, units)
+            self.__authorList += self.__createAuthor(name, title, units)
             self.__authorList += "]"
             self.__listSize += 1
             return self.__authorList
         self.__authorList = self.__authorList[0:len(self.__authorList) - 1]
-        self.__authorList += ", {}]".format(self.__createAuthor(name, last_name, title, units))
+        self.__authorList += ", {}]".format(self.__createAuthor(name, title, units))
         self.__listSize += 1
         return self.__authorList
 
@@ -82,6 +80,11 @@ class Api:
         self.__authorList = None
 
     def sendAuthors(self):
-        response = self.__session.post(self.__deliveryURL, data=self.__authorList, headers={"Content-Type": "application/json"})
+        response = self.__session.post(self.__deliveryURL, data=self.__authorList,
+                                       headers={"Content-Type": "application/json"})
+        print("Sent {} authors".format(self.__countAuthors()))
         self.clearAuthors()
         return response.status_code
+
+    def __countAuthors(self):
+        return self.__authorList.count("name")

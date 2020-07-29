@@ -1,27 +1,19 @@
 import requests
-from api import Api
 from bs4 import BeautifulSoup as Soup
 import re
+import random
 
-
-# loadPage(pageNr) loads the given page number, then downloads all li tags into an array and sets an index for it
-# hasNext return true if there is still another li tag on the page
-# getNext returns the author and book title of the next book
-# if hasNext is false goes to the next page until there is an error
-
-# getNext looks at the page
 
 class Author:
-    firstName = ""
-    lastName = ""
+    name = ""
     title = ""
     units = ""
 
-    def __init__(self, firstName, lastName, title, units):
-        self.firstName = firstName
-        self.lastName = lastName
+    def __init__(self, name, title, units):
+        self.name = name
         self.title = title
         self.units = units
+
 
 class BookFetcher:
     __siteURL = "https://thegreatestbooks.org/{}"
@@ -31,8 +23,7 @@ class BookFetcher:
     __current_tag = -1
     __current_page = 1
     __informationRegex = '\<h4\> +\d+\. +\<a href\=\"[a-z0-9\/]+"\>([a-zA-Z0-9 \']+) *\<\/a\> by \<a href\=\"[a-z0-9\/]+\"\>([a-zA-Z.\- ]+)\<\/a\>\<\/h4\>'
-    __nameRegexArray = ["([A-Z. ]+)", "([A-Za-z-]+)"]
-    __lastNameRegex = '([A-Za-z\-]+)'
+    __nameRegex = "([A-Za-z.\- ]+)"
 
     def __getPage(self, page_number):
         return self.__siteURL.format(self.__pageURL.format(page_number))
@@ -55,6 +46,27 @@ class BookFetcher:
         totalTags = len(self.__liTags)
         return currentTag < totalTags - 1
 
+    def run(self, onNewAuthor, onBatch, limit):
+        i = 1
+        count = 0
+        self.loadPage(i)
+        while self.hasTags() and count <= limit:
+            while self.hasNext():
+                author = self.getNext()
+                if author is not None:
+                    onNewAuthor(author.name, author.title, random.randrange(40, 290))
+                    if limit > 0:
+                        count += 1
+                    else:
+                        count -= 1
+            i += 1
+            onBatch()
+            self.loadPage(i)
+        if count <= 0:
+            return count * -1
+        else:
+            return count
+
     def getNext(self):
         try:
             self.__current_tag += 1
@@ -64,28 +76,18 @@ class BookFetcher:
             pattern = re.compile(self.__informationRegex)
             matcher = pattern.match(header)
             if matcher is None:
-               return None
+                return None
             title = matcher.group(1)
-            names = self.__parseAuthorName(matcher.group(2))
-            firstName = names[0]
-            lastName = ""
-            if len(names) > 1:
-               lastName = names[1]
-            return Author(firstName, lastName, title, 0)
+            name = self.__parseAuthorName(matcher.group(2))
+            return Author(name, title, 0)
         except TypeError:
             return None
 
     def __parseAuthorName(self, name):
-        for regex in self.__nameRegexArray:
-            pattern = re.compile((regex + " {}".format(self.__lastNameRegex)))
-            match = pattern.match(name)
-            if match is not None:
-                return [match.group(1), match.group(2)]
-        for regex in self.__nameRegexArray:
-            pattern = re.compile(regex)
-            match = pattern.fullmatch(name)
-            if match is not None:
-                return [match.group(1)]
+        pattern = re.compile(self.__nameRegex)
+        match = pattern.match(name)
+        if match is not None:
+            return match.group(1)
         return None
 
     def __removeNewLines(self, string):
