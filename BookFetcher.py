@@ -4,15 +4,25 @@ import re
 import random
 
 
+def removeWhitespace(string):
+    if string[0] is " ":
+        return removeWhitespace(string[1:len(string)])
+    if string[len(string) - 1] is " ":
+        return removeWhitespace(string[0:len(string) - 1])
+    return string
+
+
 class Author:
     name = ""
     title = ""
     units = ""
 
     def __init__(self, name, title, units):
-        self.name = name
-        self.title = title
+        self.name = removeWhitespace(name)
+        self.title = removeWhitespace(title)
         self.units = units
+    def printAuthor(self):
+        print("{} - {}, {} ".format(self.name, self.title, self.units))
 
 
 class BookFetcher:
@@ -92,3 +102,4 @@ class BookFetcher:
 
     def __removeNewLines(self, string):
         return string.replace("\n", "")
+
