@@ -11,6 +11,8 @@ class Api:
     __session = None
     __authorList = None
     __listSize = 0
+    __authorJSONPattern = '{{"name":"{}","bibliography":[{{"title":"{}", "inStock":{}}}] }}'
+    __userJSONPattern = '{{"username":"{}", "password":"{}", "passwordConfirm":"{}"}}'
 
     __bodyRegex = "b\'(.+)\'"
 
@@ -24,7 +26,7 @@ class Api:
         return matcher.group(1)
 
     def __createAuthor(self, name, title, units):
-        author = '{{"name":"{}","bibliography":[{{"title":"{}", "inStock":{}}}] }}'.format(name, title, units)
+        author = self.__authorJSONPattern.format(name, title, units)
         return author
 
     def addAuthor(self, name, title, units):
@@ -74,7 +76,7 @@ class Api:
         return (self.__siteURL + "/{}").format(path)
 
     def __createUser(self, username, password):
-        return '{{"username":"{}", "password":"{}", "passwordConfirm":"{}"}}'.format(username, password, password)
+        return self.__userJSONPattern.format(username, password, password)
 
     def clearAuthors(self):
         self.__authorList = None

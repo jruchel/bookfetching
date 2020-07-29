@@ -32,7 +32,7 @@ class BookFetcher:
     __bs = None
     __current_tag = -1
     __current_page = 1
-    __informationRegex = '\<h4\> +\d+\. +\<a href\=\"[a-z0-9\/]+"\>([a-zA-Z0-9 \']+) *\<\/a\> by \<a href\=\"[a-z0-9\/]+\"\>([a-zA-Z.\- ]+)\<\/a\>\<\/h4\>'
+    __informationRegex = '\<h4\> +\d+\. +\<a href\=\"[a-z0-9\/]+"\>([\w+ \']+) *\<\/a\> by \<a href\=\"[a-z0-9\/]+\"\>([a-zA-Z.\- ]+)\<\/a\>\<\/h4\>'
     __nameRegex = "([A-Za-z.\- ]+)"
 
     def __getPage(self, page_number):
